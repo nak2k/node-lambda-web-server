@@ -19,6 +19,10 @@ async function main() {
         type: 'string',
         default: 'index.handler',
       },
+      host: {
+        describe: 'Listen host',
+        type: 'string',
+      },
       open: {
         describe: 'Open automatically',
         type: 'boolean',

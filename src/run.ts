@@ -4,6 +4,7 @@ import { createApplication } from './application';
 import { LambdaHandlerOptions } from './lambda-handler';
 
 interface RunOptions extends LambdaHandlerOptions {
+  host?: string;
   port?: number;
   open?: boolean;
 }
@@ -19,7 +20,7 @@ export async function run(options: RunOptions) {
       lambdaManager.killAll();
     });
 
-    server.listen(options.port, 'localhost', function () {
+    server.listen(options.port, options.host || 'localhost', function () {
       const { address, port } = server.address() as AddressInfo;
       const endpoint = `http://${address}:${port}`;
       console.log(`Listening: ${endpoint}`);
