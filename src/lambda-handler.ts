@@ -1,9 +1,11 @@
 import { spawnLambda, INIT_RESULT, LambdaProcess } from 'lambda-spawn';
 import type { RequestHandler, Request, Response } from 'express';
-import { stat, access } from 'fs/promises';
+import { promises } from 'fs';
 import { join } from 'path';
 import { lambdaLogger } from './logger';
 import { promisify } from 'util';
+
+const { stat, access } = promises;
 
 export interface LambdaManager {
   killAll(): void;
