@@ -1,8 +1,10 @@
 import yargs = require('yargs');
 import { exitOnError } from './exitOnError';
 import { run } from './run';
-import { stat } from 'fs/promises';
+import { promises } from 'fs';
 import { getPort } from 'hashed-port';
+
+const { stat } = promises;
 
 async function main() {
   const argv = yargs
