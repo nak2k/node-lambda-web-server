@@ -15,6 +15,7 @@ export interface LambdaHandlerOptions {
   code: string;
   handler: string;
   project?: string;
+  payloadV2?: boolean;
 }
 
 interface LambdaHandlerResult {
@@ -82,36 +83,7 @@ export async function lambdaHandler(options: LambdaHandlerOptions): Promise<Lamb
       },
     },
     middleware: (req, res, next) => {
-      const event = {
-        ...reqToEvent(req),
-        resource: req.path,
-        pathParameters: {},
-        stageVariables: null,
-        requestContext: {
-          path: req.path,
-          accountId: '',
-          resourceId: '',
-          stage: '',
-          requestId: '',
-          identity: {
-            cognitoIdentityPoolId: null,
-            accountId: '',
-            cognitoIdentityId: null,
-            caller: '',
-            apiKey: '',
-            sourceIp: '',
-            accessKey: '',
-            cognitoAuthenticationType: null,
-            cognitoAuthenticationProvider: null,
-            userArn: '',
-            userAgent: '',
-            user: '',
-          },
-          resourcePath: req.path,
-          httpMethod: '',
-          apiId: '',
-        },
-      };
+      const event = options.payloadV2 ? reqToEventV2(req) : reqToEvent(req);
       const context = {};
 
       if (!lambdaProcess) {
@@ -129,7 +101,7 @@ export async function lambdaHandler(options: LambdaHandlerOptions): Promise<Lamb
           return next(err);
         }
 
-        setResFromResult(res, result, next);
+        setResFromResult(res, result, !!options.payloadV2, next);
       });
 
       function restartLambda() {
@@ -147,7 +119,7 @@ export async function lambdaHandler(options: LambdaHandlerOptions): Promise<Lamb
               return next(new Error('Restarting the lambda process failed'));
             }
 
-            setResFromResult(res, result, next);
+            setResFromResult(res, result, !!options.payloadV2, next);
           });
         });
       }
@@ -166,6 +138,73 @@ function reqToEvent(req: Request) {
     queryStringParameters: req.query,
     body: typeof (req.body) === 'string' ? req.body : '',
     isBase64Encoded: req.isBase64Encoded,
+    resource: req.path,
+    pathParameters: {},
+    stageVariables: null,
+    requestContext: {
+      path: req.path,
+      accountId: '',
+      resourceId: '',
+      stage: '',
+      requestId: '',
+      identity: {
+        cognitoIdentityPoolId: null,
+        accountId: '',
+        cognitoIdentityId: null,
+        caller: '',
+        apiKey: '',
+        sourceIp: '',
+        accessKey: '',
+        cognitoAuthenticationType: null,
+        cognitoAuthenticationProvider: null,
+        userArn: '',
+        userAgent: '',
+        user: '',
+      },
+      resourcePath: req.path,
+      httpMethod: '',
+      apiId: '',
+    },
+  };
+}
+
+function reqToEventV2(req: Request) {
+  const { headers } = makeHeadersFromRaw(req.rawHeaders);
+  const now = Date.now();
+
+  const indexOfQS = req.url.indexOf('?');
+
+  return {
+    version: '2.0',
+    routeKey: '$default',
+    rawPath: req.path,
+    rawQueryString: indexOfQS >= 0 ? req.url.substr(indexOfQS + 1) : undefined,
+    cookies: undefined,
+    headers,
+    queryStringParameters: req.query,
+    requestContext: {
+      accountId: '',
+      apiId: '',
+      authorizer: undefined,
+      domainName: req.hostname,
+      domainPrefix: '',
+      http: {
+        method: req.method,
+        path: req.path,
+        protocol: req.httpVersion,
+        sourceIp: req.ip,
+        userAgent: req.headers['user-agent'],
+      },
+      requestId: '',
+      routeKey: '$default',
+      stage: '',
+      time: new Date(now).toString(),
+      timeEpoch: now,
+    },
+    body: typeof (req.body) === 'string' ? req.body : '',
+    pathParameters: undefined,
+    isBase64Encoded: req.isBase64Encoded,
+    stageVariables: undefined,
   };
 }
 
@@ -198,9 +237,10 @@ interface LambdaResult {
   body: string;
   isBase64Encoded: boolean;
   multiValueHeaders: { [name: string]: string[] };
+  cookies: string[];
 }
 
-function setResFromResult(res: Response, result: LambdaResult, next: (err: Error | null) => void) {
+function setResFromResult(res: Response, result: LambdaResult, payloadV2: boolean, next: (err: Error | null) => void) {
   if (typeof (result) !== 'object' || result === null) {
     return next(new Error('Non-object returned by Lambda'));
   }
@@ -211,6 +251,7 @@ function setResFromResult(res: Response, result: LambdaResult, next: (err: Error
     body,
     isBase64Encoded,
     multiValueHeaders,
+    cookies,
   } = result;
 
   if (typeof (statusCode) !== 'number') {
@@ -227,7 +268,7 @@ function setResFromResult(res: Response, result: LambdaResult, next: (err: Error
     res.set(headers);
   }
 
-  if (multiValueHeaders) {
+  if (!payloadV2 && multiValueHeaders) {
     if (typeof (headers) !== 'object') {
       return next(new Error('Non-object multiValueHeaders returned by Lambda'));
     }
@@ -235,6 +276,10 @@ function setResFromResult(res: Response, result: LambdaResult, next: (err: Error
     Object.entries(multiValueHeaders).forEach(([name, values]) => {
       res.setHeader(name, values);
     });
+  }
+
+  if (payloadV2 && cookies) {
+    res.header('set-cookie', cookies);
   }
 
   if (body) {

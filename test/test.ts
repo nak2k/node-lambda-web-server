@@ -23,3 +23,25 @@ test('test', t => {
     });
   })().catch(err => t.fail(err));
 });
+
+test('test payload v2', t => {
+  t.plan(2);
+
+  (async () => {
+    const server = await run({
+      code: 'test/lambda-v2',
+      handler: 'index.handler',
+      payloadV2: true,
+    });
+
+    const { address, port } = server.address() as AddressInfo;
+    const endpoint = `http://${address}:${port}`;
+
+    get(endpoint!, res => {
+      t.equal(res.statusCode, 200);
+      t.equal(res.headers['content-type'], 'text/plain; charset=utf-8');
+
+      server.close();
+    });
+  })().catch(err => t.fail(err));
+});

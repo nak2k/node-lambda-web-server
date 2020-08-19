@@ -27,6 +27,10 @@ async function main() {
         describe: 'Open automatically',
         type: 'boolean',
       },
+      'payload-v2': {
+        describe: 'Invoke the lambda with payload v2',
+        type: 'boolean',
+      },
       port: {
         alias: 'p',
         describe: 'Listen port',
