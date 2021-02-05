@@ -269,7 +269,7 @@ function setResFromResult(res: Response, result: LambdaResult, payloadV2: boolea
   }
 
   if (!payloadV2 && multiValueHeaders) {
-    if (typeof (headers) !== 'object') {
+    if (typeof (multiValueHeaders) !== 'object') {
       return next(new Error('Non-object multiValueHeaders returned by Lambda'));
     }
 
