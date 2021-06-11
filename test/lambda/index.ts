@@ -1,9 +1,11 @@
-export async function handler(event: any, context: any) {
+import { APIGatewayProxyEvent } from 'aws-lambda';
+
+export async function handler(event: APIGatewayProxyEvent, _context: any) {
   return {
     statusCode: 200,
     headers: {
-      'content-type': 'text/plain',
+      'content-type': 'application/json',
     },
-    body: 'hello',
+    body: JSON.stringify(event),
   };
 }

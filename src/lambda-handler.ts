@@ -4,6 +4,7 @@ import { promises } from 'fs';
 import { join } from 'path';
 import { lambdaLogger } from './logger';
 import { promisify } from 'util';
+import type { APIGatewayProxyEvent } from "aws-lambda";
 
 const { stat, access } = promises;
 
@@ -127,15 +128,17 @@ export async function lambdaHandler(options: LambdaHandlerOptions): Promise<Lamb
   };
 }
 
-function reqToEvent(req: Request) {
+function reqToEvent(req: Request): APIGatewayProxyEvent {
   const { headers, multiValueHeaders } = makeHeadersFromRaw(req.rawHeaders);
+  const { queryStringParameters, multiValueQueryStringParameters } = makeQueryStringParameters(req);
 
   return {
     path: req.path,
     httpMethod: req.method,
     headers,
     multiValueHeaders,
-    queryStringParameters: req.query,
+    queryStringParameters,
+    multiValueQueryStringParameters,
     body: typeof (req.body) === 'string' ? req.body : '',
     isBase64Encoded: req.isBase64Encoded,
     resource: req.path,
@@ -147,12 +150,14 @@ function reqToEvent(req: Request) {
       resourceId: '',
       stage: '',
       requestId: '',
+      authorizer: {},
       identity: {
         cognitoIdentityPoolId: null,
         accountId: '',
         cognitoIdentityId: null,
         caller: '',
         apiKey: '',
+        apiKeyId: "",
         sourceIp: '',
         accessKey: '',
         cognitoAuthenticationType: null,
@@ -160,10 +165,14 @@ function reqToEvent(req: Request) {
         userArn: '',
         userAgent: '',
         user: '',
+        clientCert: null,
+        principalOrgId: "",
       },
       resourcePath: req.path,
       httpMethod: '',
       apiId: '',
+      protocol: '',
+      requestTimeEpoch: Date.now(),
     },
   };
 }
@@ -228,6 +237,28 @@ function makeHeadersFromRaw(raw: string[]) {
   return {
     headers,
     multiValueHeaders,
+  };
+}
+
+function makeQueryStringParameters(req: Request) {
+  const queryStringParameters: { [key: string]: string } = {};
+  const multiValueQueryStringParameters: { [key: string]: string[] } = {};
+
+  const searchParams = new URLSearchParams(req.originalUrl.substr(req.originalUrl.indexOf("?")));
+
+  searchParams.forEach((value, key) => {
+    queryStringParameters[key] = value;
+
+    const multiValues = multiValueQueryStringParameters[key] || (
+      multiValueQueryStringParameters[key] = []
+    );
+
+    multiValues.push(value);
+  });
+
+  return {
+    queryStringParameters,
+    multiValueQueryStringParameters,
   };
 }
 
