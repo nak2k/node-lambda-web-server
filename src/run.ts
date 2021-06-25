@@ -1,9 +1,8 @@
 import { createServer, Server } from 'http';
 import { AddressInfo } from 'net';
-import { createApplication } from './application';
-import { LambdaHandlerOptions } from './lambda-handler';
+import { createApplication, CreateApplicationOptions } from './application';
 
-interface RunOptions extends LambdaHandlerOptions {
+interface RunOptions extends CreateApplicationOptions {
   host?: string;
   port?: number;
   open?: boolean;

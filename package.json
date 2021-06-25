@@ -57,6 +57,7 @@
     "postpublish": "npm-sns",
     "pretest": "run-s clean build",
     "test": "run-s test:*",
+    "test:preprocessor": "DEBUG=* ts-node node_modules/.bin/tape test/test-preprocessor.ts",
     "test:v1": "DEBUG=* ts-node node_modules/.bin/tape test/test-v1.ts",
     "test:v2": "DEBUG=* ts-node node_modules/.bin/tape test/test-v2.ts",
     "watch": "tsc -w"

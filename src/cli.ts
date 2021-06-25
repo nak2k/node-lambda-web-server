@@ -41,6 +41,10 @@ async function main() {
         describe: 'A path of tsconfig.json',
         type: 'string',
       },
+      preprocessor: {
+        describe: 'A path of a preprocessor module',
+        type: 'string',
+      },
       verbose: {
         alias: 'v',
         describe: 'Verbose mode',
