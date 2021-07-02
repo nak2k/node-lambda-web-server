@@ -4,7 +4,7 @@ import { AddressInfo } from 'net';
 import fetch from 'node-fetch';
 
 test('test payload v1', async t => {
-  t.plan(15);
+  t.plan(18);
 
   const server = await run({
     code: 'test/lambda',
@@ -15,7 +15,13 @@ test('test payload v1', async t => {
     const { address, port } = server.address() as AddressInfo;
     const endpoint = `http://${address}:${port}/?color[]=blue&color[]=red`;
 
-    const res = await fetch(endpoint);
+    const payload = Buffer.from('{"test": 123}', "ascii").toString('base64');
+
+    const res = await fetch(endpoint, {
+      headers: {
+        authorization: `---.${payload}.---`,
+      },
+    });
 
     t.equal(res.status, 200);
     t.equal(res.headers.get('content-type'), 'application/json; charset=utf-8');
@@ -36,6 +42,9 @@ test('test payload v1', async t => {
     t.equal(typeof event.requestContext, 'object', "event.requestContext");
     t.equal(typeof event.requestContext.path, 'string', "event.requestContext.path");
     t.equal(typeof event.requestContext.httpMethod, 'string', "event.requestContext.httpMethod");
+    t.equal(typeof event.requestContext.authorizer, 'object', "event.requestContext.authorizer");
+    t.equal(typeof event.requestContext.authorizer.claims, 'object', "event.requestContext.authorizer.claims");
+    t.equal(event.requestContext.authorizer.claims.test, 123, "event.requestContext.authorizer.claims.test");
   } finally {
     server.close();
   }

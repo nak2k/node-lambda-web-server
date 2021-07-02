@@ -132,6 +132,8 @@ function reqToEvent(req: Request): APIGatewayProxyEvent {
   const { headers, multiValueHeaders } = makeHeadersFromRaw(req.rawHeaders);
   const { queryStringParameters, multiValueQueryStringParameters } = makeQueryStringParameters(req);
 
+  const authorizer = parseAuthorization(req.headers.authorization);
+
   return {
     path: req.path,
     httpMethod: req.method,
@@ -150,7 +152,7 @@ function reqToEvent(req: Request): APIGatewayProxyEvent {
       resourceId: '',
       stage: '',
       requestId: '',
-      authorizer: {},
+      authorizer,
       identity: {
         cognitoIdentityPoolId: null,
         accountId: '',
@@ -183,6 +185,8 @@ function reqToEventV2(req: Request) {
 
   const indexOfQS = req.url.indexOf('?');
 
+  const authorizer = parseAuthorization(req.headers.authorization);
+
   return {
     version: '2.0',
     routeKey: '$default',
@@ -194,7 +198,7 @@ function reqToEventV2(req: Request) {
     requestContext: {
       accountId: '',
       apiId: '',
-      authorizer: undefined,
+      authorizer: authorizer && { jwt: authorizer },
       domainName: req.hostname,
       domainPrefix: '',
       http: {
@@ -259,6 +263,36 @@ function makeQueryStringParameters(req: Request) {
   return {
     queryStringParameters,
     multiValueQueryStringParameters,
+  };
+}
+
+function parseAuthorization(authorization?: string) {
+  if (!authorization) {
+    return;
+  }
+
+  const match = authorization.match(/^\s*(?<token1>\S+)(\s+(?<token2>\S+))?/);
+
+  if (!match?.groups) {
+    return;
+  }
+
+  const { token1, token2 } = match.groups;
+  const token = token2 || token1;
+
+  const [, payload,] = token.split(".");
+  if (!payload) {
+    return;
+  }
+
+  const decodedPayload = Buffer.from(payload, 'base64').toString();
+  const claims = JSON.parse(decodedPayload);
+
+  const { scope = "", ...rest } = claims;
+
+  return {
+    claims: rest,
+    scopes: scope.split(" "),
   };
 }
 
