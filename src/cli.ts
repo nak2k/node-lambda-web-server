@@ -7,7 +7,7 @@ import { getPort } from 'hashed-port';
 const { stat } = promises;
 
 async function main() {
-  const argv = yargs
+  const argv = await yargs
     .options({
       code: {
         describe: 'A path of a Lambda function',
