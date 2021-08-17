@@ -45,6 +45,10 @@ async function main() {
         describe: 'A path of a preprocessor module',
         type: 'string',
       },
+      'role-arn': {
+        describe: 'Role for a Lambda function',
+        type: 'string',
+      },
       verbose: {
         alias: 'v',
         describe: 'Verbose mode',
