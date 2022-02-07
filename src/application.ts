@@ -16,6 +16,10 @@ export async function createApplication(options: CreateApplicationOptions): Prom
   const app = express();
 
   if (options.preprocessor) {
+    if (options.preprocessor.endsWith(".ts")) {
+      require('ts-node').register();
+    }
+
     const preprocessor = require(resolve(options.preprocessor));
 
     if (typeof preprocessor.configure !== 'function') {
