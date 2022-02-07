@@ -1,6 +1,4 @@
-import chalk = require('chalk');
-
-const { red } = chalk;
+import { red } from 'chalk';
 
 export function exitOnError(err: Error | null) {
   if (!err) {

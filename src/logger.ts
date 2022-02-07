@@ -16,7 +16,7 @@ const logMapper = (options: { label: string, limit?: number }) => (line: string)
   const timestamp = (new Date()).toLocaleTimeString();
 
   if (limit && line.length > limit) {
-    line = line.substr(0, limit) + '\n' + red('*** truncated ***');
+    line = line.substring(0, limit) + '\n' + red('*** truncated ***');
     return `[${label}] ${timestamp} ${line}\n`;
   }
 
