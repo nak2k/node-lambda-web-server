@@ -19,7 +19,7 @@ export async function run(options: RunOptions) {
       lambdaManager.killAll();
     });
 
-    server.listen(options.port, options.host || 'localhost', function () {
+    server.listen(options.port, options.host || '127.0.0.1', function () {
       const { address, port } = server.address() as AddressInfo;
       const endpoint = `http://${address}:${port}`;
       console.log(`Listening: ${endpoint}`);
