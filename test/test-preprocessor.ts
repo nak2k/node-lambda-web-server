@@ -1,7 +1,7 @@
 import * as test from 'tape';
 import { run } from '../lib/run';
 import { AddressInfo } from 'net';
-import fetch from 'node-fetch';
+import { fetch } from "undici";
 
 test('test preprocessor', async t => {
   t.plan(2);

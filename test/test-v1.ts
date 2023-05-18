@@ -1,7 +1,7 @@
 import * as test from 'tape';
 import { run } from '../lib/run';
 import { AddressInfo } from 'net';
-import fetch from 'node-fetch';
+import { fetch } from "undici";
 
 test('test payload v1', async t => {
   t.plan(18);
@@ -26,7 +26,7 @@ test('test payload v1', async t => {
     t.equal(res.status, 200);
     t.equal(res.headers.get('content-type'), 'application/json; charset=utf-8');
 
-    const event = await res.json();
+    const event: any = await res.json();
 
     t.equal(typeof event.resource, 'string', "event.resource");
     t.equal(typeof event.path, 'string', "event.path");
