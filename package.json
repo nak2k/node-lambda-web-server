@@ -1,6 +1,6 @@
 {
   "name": "lambda-web-server",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Local development tool for AWS Lambda",
   "author": "Kengo Nakatsuka <kengo.nakatsuka@gmail.com>",
   "bin": {
