@@ -17,7 +17,6 @@ export interface LambdaHandlerOptions {
   handler: string;
   project?: string;
   payloadV2?: boolean;
-  roleArn?: string;
 }
 
 interface LambdaHandlerResult {
@@ -54,7 +53,6 @@ export async function lambdaHandler(options: LambdaHandlerOptions): Promise<Lamb
       },
       stdio: ['ignore', 'pipe', 'pipe'],
       project: options.project,
-      roleArn: options.roleArn,
     });
 
     const { lambdaStdout, lambdaStderr } = lambdaLogger();
